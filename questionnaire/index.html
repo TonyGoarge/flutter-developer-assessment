@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UTD Software — Flutter Developer Questionnaire</title>
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: #0f1117;
+      color: #e4e4e7;
+      line-height: 1.6;
+      padding: 2rem 1rem;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+
+    header h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 0.5rem;
+    }
+
+    header p {
+      color: #9ca3af;
+      font-size: 0.95rem;
+    }
+
+    .section-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #32e5ac;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 1.25rem;
+      margin-top: 2.5rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid #2a2d37;
+    }
+
+    .card {
+      background: #1a1d27;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .card label.question {
+      display: block;
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: #e4e4e7;
+      margin-bottom: 0.75rem;
+    }
+
+    .card label.question .q-number {
+      color: #32e5ac;
+      font-weight: 700;
+      margin-right: 0.25rem;
+    }
+
+    .card .hint {
+      display: block;
+      color: #6b7280;
+      font-size: 0.82rem;
+      font-style: italic;
+      margin-top: -0.5rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .required::after {
+      content: ' *';
+      color: #ef4444;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="url"],
+    select,
+    textarea {
+      width: 100%;
+      padding: 0.7rem 0.9rem;
+      background: #0f1117;
+      border: 1px solid #2a2d37;
+      border-radius: 8px;
+      color: #e4e4e7;
+      font-size: 0.9rem;
+      font-family: inherit;
+      transition: border-color 0.2s;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      outline: none;
+      border-color: #32e5ac;
+    }
+
+    textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    select {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%239ca3af' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.75rem center;
+      padding-right: 2rem;
+      cursor: pointer;
+    }
+
+    select option {
+      background: #1a1d27;
+      color: #e4e4e7;
+    }
+
+    /* Pill-style radio buttons */
+    .pill-group {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .pill-group input[type="radio"] {
+      display: none;
+    }
+
+    .pill-group label.pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 44px;
+      padding: 0.45rem 0.9rem;
+      background: #0f1117;
+      border: 1px solid #2a2d37;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: #9ca3af;
+      cursor: pointer;
+      transition: all 0.2s;
+      user-select: none;
+    }
+
+    .pill-group input[type="radio"]:checked + label.pill {
+      background: #32e5ac;
+      border-color: #32e5ac;
+      color: #0f1117;
+      font-weight: 700;
+    }
+
+    .pill-group label.pill:hover {
+      border-color: #32e5ac;
+      color: #e4e4e7;
+    }
+
+    .pill-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      color: #6b7280;
+      margin-top: 0.35rem;
+      padding: 0 0.25rem;
+    }
+
+    /* Code blocks */
+    .code-block {
+      background: #0f1117;
+      border: 1px solid #2a2d37;
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 0.75rem;
+      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+      font-size: 0.82rem;
+      line-height: 1.7;
+      overflow-x: auto;
+      white-space: pre;
+      color: #c9d1d9;
+    }
+
+    /* Submit button */
+    .submit-section {
+      text-align: center;
+      margin-top: 2.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .submit-btn {
+      display: inline-block;
+      padding: 0.85rem 2.5rem;
+      background: #32e5ac;
+      color: #0f1117;
+      font-size: 1rem;
+      font-weight: 700;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+      letter-spacing: 0.02em;
+    }
+
+    .submit-btn:hover {
+      background: #28c896;
+      transform: translateY(-1px);
+    }
+
+    .submit-btn:active {
+      transform: translateY(0);
+    }
+
+    .success-message {
+      display: none;
+      margin-top: 1.25rem;
+      padding: 1rem 1.25rem;
+      background: rgba(50, 229, 172, 0.1);
+      border: 1px solid #32e5ac;
+      border-radius: 10px;
+      color: #32e5ac;
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+
+    .error-message {
+      display: none;
+      margin-top: 1.25rem;
+      padding: 1rem 1.25rem;
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid #ef4444;
+      border-radius: 10px;
+      color: #ef4444;
+      font-size: 0.9rem;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #2a2d37;
+      color: #6b7280;
+      font-size: 0.8rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>UTD Software</h1>
+      <p>Flutter Developer Questionnaire</p>
+    </header>
+
+    <form id="questionnaire" novalidate>
+
+      <!-- ============================================================= -->
+      <!-- SECTION 1 — About You -->
+      <!-- ============================================================= -->
+      <div class="section-title">Section 1 — About You</div>
+
+      <div class="card">
+        <label class="question required" for="full_name">
+          <span class="q-number">1.</span> Full Name
+        </label>
+        <input type="text" id="full_name" name="full_name" required placeholder="Your full name">
+      </div>
+
+      <div class="card">
+        <label class="question required" for="email">
+          <span class="q-number">2.</span> Email
+        </label>
+        <input type="email" id="email" name="email" required placeholder="you@example.com">
+      </div>
+
+      <div class="card">
+        <label class="question required" for="github_username">
+          <span class="q-number">3.</span> GitHub Username
+        </label>
+        <input type="text" id="github_username" name="github_username" required placeholder="your-github-username">
+      </div>
+
+      <div class="card">
+        <label class="question required" for="flutter_experience">
+          <span class="q-number">4.</span> Years of Flutter Experience
+        </label>
+        <select id="flutter_experience" name="flutter_experience" required>
+          <option value="" disabled selected>Select...</option>
+          <option value="<1">&lt;1 year</option>
+          <option value="1-2">1-2 years</option>
+          <option value="2-3">2-3 years</option>
+          <option value="3-5">3-5 years</option>
+          <option value="5+">5+ years</option>
+        </select>
+      </div>
+
+      <div class="card">
+        <label class="question" for="total_dev_experience">
+          <span class="q-number">5.</span> Total Years of Professional Software Development
+        </label>
+        <select id="total_dev_experience" name="total_dev_experience">
+          <option value="" disabled selected>Select...</option>
+          <option value="<1">&lt;1 year</option>
+          <option value="1-3">1-3 years</option>
+          <option value="3-5">3-5 years</option>
+          <option value="5-8">5-8 years</option>
+          <option value="8+">8+ years</option>
+        </select>
+      </div>
+
+      <!-- ============================================================= -->
+      <!-- SECTION 2 — Skills Self-Assessment -->
+      <!-- ============================================================= -->
+      <div class="section-title">Section 2 — Skills Self-Assessment</div>
+
+      <div class="card">
+        <label class="question">
+          <span class="q-number">6.</span> Rate your proficiency (1 = Beginner, 5 = Expert)
+        </label>
+
+        <div style="margin-top: 0.5rem;">
+
+          <div style="margin-bottom: 1.25rem;">
+            <div style="margin-bottom: 0.4rem; font-size: 0.88rem; color: #c9d1d9;">BLoC / flutter_bloc</div>
+            <div class="pill-group">
+              <input type="radio" id="skill_bloc_1" name="skill_bloc" value="1"><label class="pill" for="skill_bloc_1">1</label>
+              <input type="radio" id="skill_bloc_2" name="skill_bloc" value="2"><label class="pill" for="skill_bloc_2">2</label>
+              <input type="radio" id="skill_bloc_3" name="skill_bloc" value="3"><label class="pill" for="skill_bloc_3">3</label>
+              <input type="radio" id="skill_bloc_4" name="skill_bloc" value="4"><label class="pill" for="skill_bloc_4">4</label>
+              <input type="radio" id="skill_bloc_5" name="skill_bloc" value="5"><label class="pill" for="skill_bloc_5">5</label>
+            </div>
+            <div class="pill-labels"><span>Beginner</span><span>Expert</span></div>
+          </div>
+
+          <div style="margin-bottom: 1.25rem;">
+            <div style="margin-bottom: 0.4rem; font-size: 0.88rem; color: #c9d1d9;">Clean Architecture</div>
+            <div class="pill-group">
+              <input type="radio" id="skill_arch_1" name="skill_clean_architecture" value="1"><label class="pill" for="skill_arch_1">1</label>
+              <input type="radio" id="skill_arch_2" name="skill_clean_architecture" value="2"><label class="pill" for="skill_arch_2">2</label>
+              <input type="radio" id="skill_arch_3" name="skill_clean_architecture" value="3"><label class="pill" for="skill_arch_3">3</label>
+              <input type="radio" id="skill_arch_4" name="skill_clean_architecture" value="4"><label class="pill" for="skill_arch_4">4</label>
+              <input type="radio" id="skill_arch_5" name="skill_clean_architecture" value="5"><label class="pill" for="skill_arch_5">5</label>
+            </div>
+            <div class="pill-labels"><span>Beginner</span><span>Expert</span></div>
+          </div>
+
+          <div style="margin-bottom: 1.25rem;">
+            <div style="margin-bottom: 0.4rem; font-size: 0.88rem; color: #c9d1d9;">Firebase (Firestore, Messaging, Crashlytics)</div>
+            <div class="pill-group">
+              <input type="radio" id="skill_firebase_1" name="skill_firebase" value="1"><label class="pill" for="skill_firebase_1">1</label>
+              <input type="radio" id="skill_firebase_2" name="skill_firebase" value="2"><label class="pill" for="skill_firebase_2">2</label>
+              <input type="radio" id="skill_firebase_3" name="skill_firebase" value="3"><label class="pill" for="skill_firebase_3">3</label>
+              <input type="radio" id="skill_firebase_4" name="skill_firebase" value="4"><label class="pill" for="skill_firebase_4">4</label>
+              <input type="radio" id="skill_firebase_5" name="skill_firebase" value="5"><label class="pill" for="skill_firebase_5">5</label>
+            </div>
+            <div class="pill-labels"><span>Beginner</span><span>Expert</span></div>
+          </div>
+
+          <div style="margin-bottom: 1.25rem;">
+            <div style="margin-bottom: 0.4rem; font-size: 0.88rem; color: #c9d1d9;">CI/CD &amp; DevOps (Fastlane, GitHub Actions, Codemagic)</div>
+            <div class="pill-group">
+              <input type="radio" id="skill_cicd_1" name="skill_cicd" value="1"><label class="pill" for="skill_cicd_1">1</label>
+              <input type="radio" id="skill_cicd_2" name="skill_cicd" value="2"><label class="pill" for="skill_cicd_2">2</label>
+              <input type="radio" id="skill_cicd_3" name="skill_cicd" value="3"><label class="pill" for="skill_cicd_3">3</label>
+              <input type="radio" id="skill_cicd_4" name="skill_cicd" value="4"><label class="pill" for="skill_cicd_4">4</label>
+              <input type="radio" id="skill_cicd_5" name="skill_cicd" value="5"><label class="pill" for="skill_cicd_5">5</label>
+            </div>
+            <div class="pill-labels"><span>Beginner</span><span>Expert</span></div>
+          </div>
+
+          <div style="margin-bottom: 1.25rem;">
+            <div style="margin-bottom: 0.4rem; font-size: 0.88rem; color: #c9d1d9;">Testing (Unit, Widget, Integration)</div>
+            <div class="pill-group">
+              <input type="radio" id="skill_testing_1" name="skill_testing" value="1"><label class="pill" for="skill_testing_1">1</label>
+              <input type="radio" id="skill_testing_2" name="skill_testing" value="2"><label class="pill" for="skill_testing_2">2</label>
+              <input type="radio" id="skill_testing_3" name="skill_testing" value="3"><label class="pill" for="skill_testing_3">3</label>
+              <input type="radio" id="skill_testing_4" name="skill_testing" value="4"><label class="pill" for="skill_testing_4">4</label>
+              <input type="radio" id="skill_testing_5" name="skill_testing" value="5"><label class="pill" for="skill_testing_5">5</label>
+            </div>
+            <div class="pill-labels"><span>Beginner</span><span>Expert</span></div>
+          </div>
+
+          <div style="margin-bottom: 1.25rem;">
+            <div style="margin-bottom: 0.4rem; font-size: 0.88rem; color: #c9d1d9;">Real-time / WebSocket (Pusher, Socket.io, Firebase Realtime)</div>
+            <div class="pill-group">
+              <input type="radio" id="skill_realtime_1" name="skill_realtime" value="1"><label class="pill" for="skill_realtime_1">1</label>
+              <input type="radio" id="skill_realtime_2" name="skill_realtime" value="2"><label class="pill" for="skill_realtime_2">2</label>
+              <input type="radio" id="skill_realtime_3" name="skill_realtime" value="3"><label class="pill" for="skill_realtime_3">3</label>
+              <input type="radio" id="skill_realtime_4" name="skill_realtime" value="4"><label class="pill" for="skill_realtime_4">4</label>
+              <input type="radio" id="skill_realtime_5" name="skill_realtime" value="5"><label class="pill" for="skill_realtime_5">5</label>
+            </div>
+            <div class="pill-labels"><span>Beginner</span><span>Expert</span></div>
+          </div>
+
+          <div style="margin-bottom: 0;">
+            <div style="margin-bottom: 0.4rem; font-size: 0.88rem; color: #c9d1d9;">Performance Optimization &amp; DevTools</div>
+            <div class="pill-group">
+              <input type="radio" id="skill_perf_1" name="skill_performance" value="1"><label class="pill" for="skill_perf_1">1</label>
+              <input type="radio" id="skill_perf_2" name="skill_performance" value="2"><label class="pill" for="skill_perf_2">2</label>
+              <input type="radio" id="skill_perf_3" name="skill_performance" value="3"><label class="pill" for="skill_perf_3">3</label>
+              <input type="radio" id="skill_perf_4" name="skill_performance" value="4"><label class="pill" for="skill_perf_4">4</label>
+              <input type="radio" id="skill_perf_5" name="skill_performance" value="5"><label class="pill" for="skill_perf_5">5</label>
+            </div>
+            <div class="pill-labels"><span>Beginner</span><span>Expert</span></div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ============================================================= -->
+      <!-- SECTION 3 — Technical Knowledge -->
+      <!-- ============================================================= -->
+      <div class="section-title">Section 3 — Technical Knowledge</div>
+
+      <div class="card">
+        <label class="question required" for="q8">
+          <span class="q-number">8.</span> What is the most complex Flutter feature you've built? Describe it in 3-5 sentences.
+        </label>
+        <textarea id="q8" name="complex_feature" required placeholder="Describe the feature, the challenges, and how you solved them..."></textarea>
+      </div>
+
+      <div class="card">
+        <label class="question" for="q9">
+          <span class="q-number">9.</span> How do you decide when to use StatefulWidget vs BLoC for a new feature?
+        </label>
+        <textarea id="q9" name="stateful_vs_bloc" placeholder="Your answer..."></textarea>
+      </div>
+
+      <div class="card">
+        <label class="question" for="q10">
+          <span class="q-number">10.</span> What does this code output? Explain why.
+        </label>
+        <div class="code-block">final list1 = [1, 2, 3];
+final list2 = list1;
+list2.add(4);
+print(list1.length);  // ???
+print(identical(list1, list2));  // ???</div>
+        <textarea id="q10" name="code_output_question" placeholder="What does it print, and why?"></textarea>
+      </div>
+
+      <div class="card">
+        <label class="question" for="q11">
+          <span class="q-number">11.</span> What's wrong with this BLoC code? How would you fix it?
+        </label>
+        <div class="code-block">class CounterBloc extends Bloc&lt;CounterEvent, int&gt; {
+  CounterBloc() : super(0) {
+    on&lt;Increment&gt;((event, emit) async {
+      await Future.delayed(Duration(seconds: 1));
+      emit(state + 1);
+      emit(state + 1);  // Intend to add 2
+    });
+  }
+}</div>
+        <textarea id="q11" name="bloc_bug_question" placeholder="Identify the issue and describe your fix..."></textarea>
+      </div>
+
+      <div class="card">
+        <label class="question" for="q12">
+          <span class="q-number">12.</span> Explain the difference between <code style="background:#0f1117;padding:0.15em 0.4em;border-radius:4px;font-size:0.85em;">const SizedBox()</code> and <code style="background:#0f1117;padding:0.15em 0.4em;border-radius:4px;font-size:0.85em;">SizedBox()</code> in terms of what Flutter does internally.
+        </label>
+        <textarea id="q12" name="const_sizedbox" placeholder="Your answer..."></textarea>
+      </div>
+
+      <div class="card">
+        <label class="question" for="q13">
+          <span class="q-number">13.</span> You discover a critical bug in production on Friday at 5:00 PM. Walk us through your process — step by step.
+        </label>
+        <textarea id="q13" name="friday_bug_process" placeholder="Step 1: ... Step 2: ... etc."></textarea>
+      </div>
+
+      <!-- ============================================================= -->
+      <!-- SECTION 4 — How You Work -->
+      <!-- ============================================================= -->
+      <div class="section-title">Section 4 — How You Work</div>
+
+      <div class="card">
+        <label class="question required" for="q14">
+          <span class="q-number">14.</span> Describe a time you disagreed with an architecture decision on your team. What happened?
+        </label>
+        <textarea id="q14" name="architecture_disagreement" required placeholder="Describe the situation, your perspective, and the outcome..."></textarea>
+      </div>
+
+      <div class="card">
+        <label class="question" for="q15">
+          <span class="q-number">15.</span> How do you stay current with Flutter/Dart updates and best practices?
+        </label>
+        <textarea id="q15" name="staying_current" placeholder="Your answer..."></textarea>
+      </div>
+
+      <div class="card">
+        <label class="question" for="q16">
+          <span class="q-number">16.</span> What's your approach to code review? What do you look for? What makes a good PR?
+        </label>
+        <textarea id="q16" name="code_review_approach" placeholder="Your answer..."></textarea>
+      </div>
+
+      <div class="card">
+        <label class="question" for="q17">
+          <span class="q-number">17.</span> How did you use AI tools (if at all) while completing this assessment? Be honest — we allow AI usage.
+        </label>
+        <span class="hint">There's no penalty for using AI — we want to know how you use it.</span>
+        <textarea id="q17" name="ai_usage" placeholder="Describe which tools you used and how..."></textarea>
+      </div>
+
+      <!-- ============================================================= -->
+      <!-- SECTION 5 — Submissions -->
+      <!-- ============================================================= -->
+      <div class="section-title">Section 5 — Submissions</div>
+
+      <div class="card">
+        <label class="question" for="q18">
+          <span class="q-number">18.</span> Video Walkthrough URL (Exercise 6)
+        </label>
+        <input type="url" id="q18" name="video_url" placeholder="https://www.loom.com/share/... or YouTube link">
+      </div>
+
+      <div class="card">
+        <label class="question required" for="q19">
+          <span class="q-number">19.</span> Your GitHub Repository URL
+        </label>
+        <input type="url" id="q19" name="github_repo_url" required placeholder="https://github.com/your-username/flutter-developer-assessment">
+      </div>
+
+      <div class="card">
+        <label class="question" for="q20">
+          <span class="q-number">20.</span> Anything else you'd like us to know?
+        </label>
+        <textarea id="q20" name="anything_else" placeholder="Optional — share anything relevant..."></textarea>
+      </div>
+
+      <!-- ============================================================= -->
+      <!-- Submit -->
+      <!-- ============================================================= -->
+      <div class="submit-section">
+        <button type="submit" class="submit-btn" id="submitBtn">Generate Answers File</button>
+        <div class="error-message" id="errorMsg"></div>
+        <div class="success-message" id="successMsg">
+          Your <strong>questionnaire_answers.json</strong> file has been downloaded.<br>
+          Place it in the <code>answers/</code> directory of your repo and commit it.
+        </div>
+      </div>
+
+    </form>
+
+    <footer>
+      UTD Software — Flutter Developer Assessment
+    </footer>
+  </div>
+
+  <script>
+    document.getElementById('questionnaire').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const form = e.target;
+      const errorMsg = document.getElementById('errorMsg');
+      const successMsg = document.getElementById('successMsg');
+      const submitBtn = document.getElementById('submitBtn');
+
+      // Hide previous messages
+      errorMsg.style.display = 'none';
+      successMsg.style.display = 'none';
+
+      // Validate required fields
+      const requiredFields = form.querySelectorAll('[required]');
+      const missing = [];
+      requiredFields.forEach(function(field) {
+        if (!field.value.trim()) {
+          missing.push(field.closest('.card').querySelector('.question').textContent.trim());
+        }
+      });
+
+      if (missing.length > 0) {
+        errorMsg.textContent = 'Please fill in all required fields: ' + missing.join(', ');
+        errorMsg.style.display = 'block';
+        return;
+      }
+
+      // Collect form data
+      const data = {
+        metadata: {
+          generated_at: new Date().toISOString(),
+          assessment_version: '1.0',
+          company: 'UTD Software'
+        },
+        about_you: {
+          full_name: form.full_name.value.trim(),
+          email: form.email.value.trim(),
+          github_username: form.github_username.value.trim(),
+          flutter_experience: form.flutter_experience.value,
+          total_dev_experience: form.total_dev_experience.value || null
+        },
+        skills_self_assessment: {
+          bloc_flutter_bloc: getRadioValue('skill_bloc'),
+          clean_architecture: getRadioValue('skill_clean_architecture'),
+          firebase: getRadioValue('skill_firebase'),
+          cicd_devops: getRadioValue('skill_cicd'),
+          testing: getRadioValue('skill_testing'),
+          realtime_websocket: getRadioValue('skill_realtime'),
+          performance_devtools: getRadioValue('skill_performance')
+        },
+        technical_knowledge: {
+          q8_complex_feature: form.complex_feature.value.trim(),
+          q9_stateful_vs_bloc: form.stateful_vs_bloc.value.trim() || null,
+          q10_code_output: form.code_output_question.value.trim() || null,
+          q11_bloc_bug: form.bloc_bug_question.value.trim() || null,
+          q12_const_sizedbox: form.const_sizedbox.value.trim() || null,
+          q13_friday_bug: form.friday_bug_process.value.trim() || null
+        },
+        how_you_work: {
+          q14_architecture_disagreement: form.architecture_disagreement.value.trim(),
+          q15_staying_current: form.staying_current.value.trim() || null,
+          q16_code_review: form.code_review_approach.value.trim() || null,
+          q17_ai_usage: form.ai_usage.value.trim() || null
+        },
+        submissions: {
+          q18_video_url: form.video_url.value.trim() || null,
+          q19_github_repo_url: form.github_repo_url.value.trim(),
+          q20_anything_else: form.anything_else.value.trim() || null
+        }
+      };
+
+      // Download JSON
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'questionnaire_answers.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      // Show success
+      successMsg.style.display = 'block';
+      submitBtn.textContent = 'Download Again';
+    });
+
+    function getRadioValue(name) {
+      const selected = document.querySelector('input[name="' + name + '"]:checked');
+      return selected ? parseInt(selected.value) : null;
+    }
+  </script>
+</body>
+</html>

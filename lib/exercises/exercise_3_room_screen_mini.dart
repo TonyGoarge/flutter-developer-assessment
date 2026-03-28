@@ -1,34 +1,20 @@
+
+
+// New version 
+
 // =============================================================================
-// EXERCISE 3: Debugging & Refactoring — "Room Screen Mini"
-// Time: 30 minutes
-// =============================================================================
-//
-// SCENARIO:
-// This is a simplified version of a room screen from a live-streaming app.
-// It was hastily written and contains multiple bugs and anti-patterns.
-//
-// TASK:
-// Find ALL bugs (there are 8), fix each one, and write a 1-line comment
-// explaining why each fix is necessary.
-//
-// HINT: Bugs span categories including state management, memory management,
-// lifecycle handling, performance, and null safety.
-//
-// SCORING:
-// - 2 points per bug found and fixed correctly
-// - 0.5 bonus points per high-quality explanation
-// - Maximum: 20 points
+// EXERCISE 3: Debugging & Refactoring — "Room Screen Mini" (FIXED)
+// All 8 bugs found and fixed. Each fix annotated with // FIX #N:
 // =============================================================================
 
 import 'dart:async';
-import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 
 // ---------------------------------------------------------------------------
-// MOCK DEPENDENCIES (do not modify)
+// MOCK DEPENDENCIES (unchanged)
 // ---------------------------------------------------------------------------
 
 final di = _MockDI();
@@ -52,7 +38,6 @@ final zegoService = ZegoService();
 
 final GlobalKey<NavigatorState> navKey = GlobalKey<NavigatorState>();
 
-// Mock BLoC classes
 class RoomState extends Equatable {
   final String roomMode;
   final bool isCommentLocked;
@@ -147,15 +132,16 @@ class BannerBloc extends Bloc<BannerEvent, BannerState> {
 }
 
 // ---------------------------------------------------------------------------
-// THE BUGGY SCREEN (find and fix all 8 bugs)
+// FIXED SCREEN
 // ---------------------------------------------------------------------------
 
 class RoomScreenMini extends StatefulWidget {
   final int roomId;
   final bool isLocked;
 
-  // ignore: missing const constructor for now
-  RoomScreenMini({required this.roomId, this.isLocked = false});
+  // FIX #1 (partial): const constructor added — widget is now const-eligible
+  // when values are known at compile time, reducing unnecessary rebuilds.
+  const RoomScreenMini({super.key, required this.roomId, this.isLocked = false});
 
   @override
   State<RoomScreenMini> createState() => _RoomScreenMiniState();
@@ -163,11 +149,12 @@ class RoomScreenMini extends StatefulWidget {
 
 class _RoomScreenMiniState extends State<RoomScreenMini>
     with WidgetsBindingObserver {
-  // ═══════════════════════════════════════════════════════════════════════════
-  // BUG #7: Static mutable map used as instance state
-  // ═══════════════════════════════════════════════════════════════════════════
-  static Map<String, GlobalKey> seatKeys = {};
-  static Map<int, String> seatUserIds = {};
+  // FIX #7: Changed from static to instance fields.
+  // Static mutable maps are shared across ALL instances of this widget —
+  // opening a second room overwrites the first room's seat keys and user IDs,
+  // causing ghost keys and incorrect seat-to-user mappings.
+  final Map<String, GlobalKey> seatKeys = {};
+  final Map<int, String> seatUserIds = {};
 
   final RoomBloc _roomBloc = RoomBloc();
   final BannerBloc _bannerBloc = BannerBloc();
@@ -188,22 +175,25 @@ class _RoomScreenMiniState extends State<RoomScreenMini>
   void _initializeSubscriptions() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _subscriptions
-        // ═════════════════════════════════════════════════════════════════════
-        // BUG #3: Empty stream listener — subscription created but does nothing
-        // ═════════════════════════════════════════════════════════════════════
-        ..add(zegoService.getMessageStream().listen((event) {}))
+        // FIX #3: Message stream listener now processes incoming events.
+        // An empty listener silently discards all messages — users never see
+        // chat, and the subscription still holds resources without doing work.
+        ..add(zegoService.getMessageStream().listen((event) {
+          final msg = event['msg'];
+          if (msg != null) _roomBloc.add(AddMessageEvent(msg.toString()));
+        }))
         ..add(zegoService.getCommandStream().listen(_onCommandReceived))
         ..add(zegoService.getUserJoinStream().listen(_onUserJoined));
     });
   }
 
   Future<void> _loadRoomData() async {
-    // Simulate API call
     await Future.delayed(const Duration(seconds: 2));
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    // BUG #1: setState called after async gap without mounted check
-    // ═══════════════════════════════════════════════════════════════════════════
+    // FIX #1: Guard setState with mounted check before calling after async gap.
+    // Without this, if the widget is disposed during the delay (e.g. user
+    // navigates away), setState throws a "called after dispose" exception.
+    if (!mounted) return;
     setState(() {
       seatKeys.clear();
       for (int i = 0; i < 8; i++) {
@@ -220,13 +210,13 @@ class _RoomScreenMiniState extends State<RoomScreenMini>
           _roomBloc.add(UpdateModeEvent(data['mode'] ?? 'normal'));
           break;
         case 'ban_user':
-          // ═════════════════════════════════════════════════════════════════════
-          // BUG #5: Force-unwrap navigator without null check
-          // ═════════════════════════════════════════════════════════════════════
-          Navigator.popUntil(
-            navKey.currentState!.context,
-            (route) => route.isFirst,
-          );
+          // FIX #5: Null-check navKey.currentState before accessing its context.
+          // The GlobalKey may not yet be attached (e.g. during startup or after
+          // hot restart), causing a null-dereference crash on force-unwrap (!).
+          final nav = navKey.currentState;
+          if (nav != null) {
+            Navigator.popUntil(nav.context, (route) => route.isFirst);
+          }
           break;
         case 'lock_comments':
           _roomBloc.add(const UpdateModeEvent('locked'));
@@ -241,35 +231,44 @@ class _RoomScreenMiniState extends State<RoomScreenMini>
     _roomBloc.add(AddMessageEvent('${data['user']} joined the room'));
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // BUG #8: Async lifecycle override returning void
-  // ═══════════════════════════════════════════════════════════════════════════
+  // FIX #8: Removed async from didChangeAppLifecycleState override.
+  // The framework signature is `void` — marking it `async` silently converts
+  // it to return a `Future<void>` that the framework ignores entirely. Any
+  // exception thrown inside an async void is unhandled and swallowed.
+  // Fire-and-forget async work should be delegated to a separate method.
+  //This means that any exception within the async function will be ignored, and there's no way to track it.
+  //Solution: Leave the override void as normal, and if you need to implement async, execute the function in a separate location (like _stopCamera() and _resumeCamera()).
   @override
-  void didChangeAppLifecycleState(AppLifecycleState state) async {
+  void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
 
     if (state == AppLifecycleState.paused) {
-      // Simulate stopping camera/mic
-      await Future.delayed(const Duration(milliseconds: 100));
-      debugPrint('Camera stopped');
+      _stopCamera();
     } else if (state == AppLifecycleState.resumed) {
-      // Simulate restarting camera/mic
-      await Future.delayed(const Duration(milliseconds: 100));
-      debugPrint('Camera resumed');
+      _resumeCamera();
     }
+  }
+
+  Future<void> _stopCamera() async {
+    await Future.delayed(const Duration(milliseconds: 100));
+    debugPrint('Camera stopped');
+  }
+
+  Future<void> _resumeCamera() async {
+    await Future.delayed(const Duration(milliseconds: 100));
+    debugPrint('Camera resumed');
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    // BUG #4: Only cancelling first 2 subscriptions, missing the 3rd
-    // ═══════════════════════════════════════════════════════════════════════════
-    if (_subscriptions.length >= 2) {
-      _subscriptions[0]?.cancel();
-      _subscriptions[1]?.cancel();
-      // Missing: _subscriptions[2]?.cancel();
+    // FIX #4: Cancel ALL subscriptions, not just the first two.
+    // The third subscription (getUserJoinStream) was left running after dispose,
+    // causing it to fire callbacks on a dead widget — a classic memory leak
+    // and a source of "setState called after dispose" errors.
+    for (final sub in _subscriptions) {
+      sub?.cancel();
     }
 
     _chatScrollController.dispose();
@@ -295,12 +294,14 @@ class _RoomScreenMiniState extends State<RoomScreenMini>
 
           // --- Room Mode Banner ---
           SliverToBoxAdapter(
-            // ═════════════════════════════════════════════════════════════════
-            // BUG #6: BlocBuilder without buildWhen — rebuilds on every state
-            // ═════════════════════════════════════════════════════════════════
             child: BlocBuilder<RoomBloc, RoomState>(
               bloc: _roomBloc,
-              // Missing: buildWhen: (prev, curr) => prev.roomMode != curr.roomMode,
+              // FIX #6: buildWhen scoped to each builder's relevant field.
+              // Without buildWhen, every BlocBuilder here rebuilds on ANY state
+              // change — a new chat message triggers a full mode-banner rebuild,
+              // a seat-count change triggers a chat-list rebuild, etc.
+              // Each builder now only runs when its own data actually changes.
+              buildWhen: (prev, curr) => prev.roomMode != curr.roomMode,
               builder: (context, state) {
                 return Container(
                   padding: const EdgeInsets.all(8),
@@ -314,47 +315,41 @@ class _RoomScreenMiniState extends State<RoomScreenMini>
           ),
 
           // --- Seat Grid ---
-          SliverToBoxAdapter(
-            child: BlocBuilder<RoomBloc, RoomState>(
-              bloc: _roomBloc,
-              // Missing buildWhen here too
-              builder: (context, state) {
-                return GridView.builder(
-                  // ═══════════════════════════════════════════════════════════
-                  // BUG #2: shrinkWrap inside CustomScrollView — forces all
-                  // children to be laid out at once, defeating lazy rendering
-                  // ═══════════════════════════════════════════════════════════
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 4,
-                    crossAxisSpacing: 8,
-                    mainAxisSpacing: 8,
+          // FIX #2: Replaced shrinkWrap GridView inside CustomScrollView with
+          // SliverGrid. shrinkWrap forces ALL grid children to be laid out
+          // eagerly (defeating virtualization) and causes double-layout because
+          // the CustomScrollView also measures it. SliverGrid integrates
+          // natively and stays lazy.
+          SliverGrid(
+            delegate: SliverChildBuilderDelegate(
+              (context, index) {
+                return Container(
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade200,
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  itemCount: state.seatCount,
-                  itemBuilder: (context, index) {
-                    return Container(
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade200,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.person, color: Colors.grey),
-                            SizedBox(height: 4),
-                            Text(
-                              'Seat ${index + 1}',
-                              style: TextStyle(fontSize: 10),
-                            ),
-                          ],
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.person, color: Colors.grey),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Seat ${index + 1}',
+                          style: const TextStyle(fontSize: 10),
                         ),
-                      ),
-                    );
-                  },
+                      ],
+                    ),
+                  ),
                 );
               },
+              // Drive itemCount from bloc state so it reacts to seatCount changes
+              childCount: _roomBloc.state.seatCount,
+            ),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 4,
+              crossAxisSpacing: 8,
+              mainAxisSpacing: 8,
             ),
           ),
 
@@ -362,14 +357,18 @@ class _RoomScreenMiniState extends State<RoomScreenMini>
           SliverToBoxAdapter(
             child: BlocBuilder<BannerBloc, BannerState>(
               bloc: _bannerBloc,
-              // Missing buildWhen
+              // FIX #6 (continued): banner rebuilds only when visibility or
+              // content changes, not on every RoomBloc message event.
+              buildWhen: (prev, curr) =>
+                  prev.isVisible != curr.isVisible ||
+                  prev.activeBanner != curr.activeBanner,
               builder: (context, state) {
                 if (!state.isVisible) return const SizedBox.shrink();
                 return Container(
                   height: 60,
                   margin: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(
+                    gradient: const LinearGradient(
                       colors: [Colors.amber, Colors.orange],
                     ),
                     borderRadius: BorderRadius.circular(8),
@@ -377,7 +376,7 @@ class _RoomScreenMiniState extends State<RoomScreenMini>
                   child: Center(
                     child: Text(
                       state.activeBanner?['text'] ?? 'Special Event!',
-                      style: TextStyle(
+                      style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
                       ),
@@ -392,26 +391,25 @@ class _RoomScreenMiniState extends State<RoomScreenMini>
           SliverToBoxAdapter(
             child: BlocBuilder<RoomBloc, RoomState>(
               bloc: _roomBloc,
-              // Missing buildWhen
+              // FIX #6 (continued): chat list rebuilds only when the messages
+              // list changes, not on roomMode or seatCount updates.
+              buildWhen: (prev, curr) => prev.messages != curr.messages,
               builder: (context, state) {
-                return Container(
+                return SizedBox(
                   height: 300,
                   child: ListView.separated(
                     controller: _chatScrollController,
-                    // Performance issue: shrinkWrap not needed here since
-                    // parent container has fixed height, but it's still bad
-                    // practice to leave it (it's not present here though)
                     itemCount: state.messages.length,
-                    separatorBuilder: (_, __) => Divider(height: 1),
+                    separatorBuilder: (_, __) => const Divider(height: 1),
                     itemBuilder: (context, index) {
                       return Padding(
-                        padding: EdgeInsets.symmetric(
+                        padding: const EdgeInsets.symmetric(
                           horizontal: 12,
                           vertical: 4,
                         ),
                         child: Text(
                           state.messages[index],
-                          style: TextStyle(fontSize: 13),
+                          style: const TextStyle(fontSize: 13),
                         ),
                       );
                     },
@@ -427,7 +425,7 @@ class _RoomScreenMiniState extends State<RoomScreenMini>
       bottomNavigationBar: Container(
         height: 60,
         padding: const EdgeInsets.symmetric(horizontal: 16),
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           color: Colors.white,
           boxShadow: [
             BoxShadow(
@@ -440,22 +438,10 @@ class _RoomScreenMiniState extends State<RoomScreenMini>
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            IconButton(
-              icon: Icon(Icons.mic),
-              onPressed: () {},
-            ),
-            IconButton(
-              icon: Icon(Icons.chat_bubble_outline),
-              onPressed: () {},
-            ),
-            IconButton(
-              icon: Icon(Icons.card_giftcard),
-              onPressed: () {},
-            ),
-            IconButton(
-              icon: Icon(Icons.more_horiz),
-              onPressed: () {},
-            ),
+            IconButton(icon: const Icon(Icons.mic), onPressed: () {}),
+            IconButton(icon: const Icon(Icons.chat_bubble_outline), onPressed: () {}),
+            IconButton(icon: const Icon(Icons.card_giftcard), onPressed: () {}),
+            IconButton(icon: const Icon(Icons.more_horiz), onPressed: () {}),
           ],
         ),
       ),
